@@ -5,66 +5,210 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>X Reposts Raffle Extension | 개인정보 처리방침 · Privacy Policy</title>
 <style>
+/* External Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
 :root {
   --bg: #000000;
-  --text: #bcbcbc;
-  --muted: #3a3a3a;
-  --panel: #020202;
-  --panel-alt: #262626;
-  --border: #bfbfbf;
-  --link: #f40a0a;
-  --link-visited: #790101;
-  --link-hover: #feaeae;
-  --accent: #fe4848;
-  --accent-strong: #ac2929;
-  --accent-strong-hover: #d66a6a;
-  --note: #420f0f;
+  --text-primary: #e0e0e0;
+  --text: #cccccc;
+  --muted: #888888;
+  --panel: #0a0a0a;
+  --border: #333333;
+  --border-hover: #ffffff;
+  --link: #ffffff;
+  --link-visited: #cccccc;
+  --link-hover: #888888;
+  --accent: #ffffff;
+  --note-bg: #111111;
+  
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
+
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, Apple SD Gothic Neo, Noto Sans KR, "Malgun Gothic", sans-serif;
-  line-height: 1.65;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-header { padding: 32px 20px 0 20px; text-align: center; }
-h1, h2, h3 { color: #ffffff; margin: 0 0 12px 0; font-weight: 700; }
-p { margin: 10px 0; }
-a { color: var(--link); text-decoration: none; }
+
+/* Header Components */
+header { 
+  padding: 80px 24px 40px 24px; 
+  text-align: center; 
+  border-bottom: 1px solid var(--border);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1, h2, h3 { 
+  color: var(--accent); 
+  margin: 0 0 1rem 0; 
+  font-weight: 600; 
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+/* Section Header with Line */
+h2 {
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+}
+h2::after {
+  content: '';
+  flex-grow: 1;
+  height: 1px;
+  background-color: var(--border);
+  margin-left: 20px;
+}
+
+p { margin: 10px 0; color: var(--text); font-weight: 300; }
+
+a { 
+  color: var(--link); 
+  text-decoration: none; 
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
 a:visited { color: var(--link-visited); }
-a:hover { color: var(--link-hover); }
+a:hover { border-bottom-color: var(--link); color: var(--link); }
+
+/* Layout Utilities */
 main {
-  max-width: 920px;
-  margin: 20px auto 40px auto;
-  background: linear-gradient(180deg, var(--panel), var(--panel-alt));
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 28px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 80px 24px;
 }
-.badge { display:inline-block; padding: 2px 8px; border-radius: 6px; background: var(--accent); color: #020202; font-weight:700; }
-.note { font-size: 0.95em; color: #feaeae; background: rgba(66,15,15,0.3); border-left: 3px solid var(--note); padding: 8px 12px; border-radius: 8px; }
-.section { margin: 26px 0; }
-.card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
-ul { margin: 8px 0 8px 22px; }
-footer { color: #790101; text-align: center; padding: 18px; font-size: 14px; }
-.lang-switch { display:flex; gap: 8px; justify-content:center; margin: 16px 0 8px 0; }
+
+/* UI Elements */
+.badge { 
+  display: inline-block; 
+  padding: 6px 12px; 
+  border: 1px solid var(--border);
+  background: transparent; 
+  color: var(--accent); 
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.note { 
+  font-size: 0.95rem; 
+  color: var(--text-primary); 
+  background: var(--note-bg); 
+  border-left: 2px solid var(--accent); 
+  padding: 16px; 
+  border-radius: 0; 
+  font-family: var(--font-mono);
+  margin: 16px 0;
+}
+
+.section { margin: 0; }
+
+/* Grid & Card System */
+.lang.active { 
+  display: flex; 
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card { 
+  background: var(--panel); 
+  border: 1px solid var(--border); 
+  border-radius: 0; /* Sharp corners for technical feel */
+  padding: 24px; 
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+ul { margin: 12px 0 12px 22px; color: var(--text); font-weight: 300; }
+li { padding-left: 4px; margin-bottom: 8px; }
+li strong { color: var(--text-primary); font-weight: 600; }
+
+/* Interactive Elements */
+.lang-switch { 
+  display: flex; 
+  gap: 16px; 
+  justify-content: center; 
+  margin: 24px 0 16px 0; 
+}
+
 button.btn {
   appearance: none;
-  border: none;
-  background: var(--accent-strong);
-  color: #020202;
-  padding: 8px 14px;
-  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  padding: 12px 24px;
+  border-radius: 0;
   cursor: pointer;
+  font-family: var(--font-mono);
   font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
 }
-button.btn:hover { background: var(--accent-strong-hover); color: #ffffff; }
+button.btn:hover { 
+  background: var(--accent); 
+  color: var(--bg); 
+}
+
 .lang { display: none; }
-.lang.active { display: block; }
-.small { font-size: .9em; color: var(--muted); }
-hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+.small { 
+  display: block;
+  font-size: 0.9rem; 
+  color: var(--muted); 
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 20px;
+}
+
+hr { display: none; }
+
+/* Footer */
+footer { 
+  margin-top: 80px;
+  padding: 40px 20px; 
+  border-top: 1px solid var(--border);
+  color: var(--muted); 
+  text-align: center; 
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header { padding: 40px 20px; }
+  h1 { font-size: 1.8rem; }
+  main { padding: 40px 20px; }
+  h2 { flex-direction: column; align-items: flex-start; }
+  h2::after { width: 100%; margin-top: 10px; margin-left: 0; }
+}
 </style>
 <script>
 function setLang(l) {
@@ -88,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <button class="btn" onclick="setLang('ko')">한국어</button>
     <button class="btn" onclick="setLang('en')">English</button>
   </div>
-  <p class="small">Last updated: 2025-11-06</p>
+  <span class="small">Last updated: 2026-03-08</span>
 </header>
 
 <main>
@@ -97,34 +241,34 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="section card">
       <h2>개요</h2>
       <p>이 문서는 <strong>X Reposts Raffle Extension</strong>(이하 “확장 프로그램”)의 개인정보 처리방침입니다. 본 확장 프로그램이 사용자 데이터를 처리하는 경우, 본 방침은 정확하고 최신 정보를 제공합니다.</p>
-      <p class="note">확장 프로그램은 기본적으로 브라우저 내에서 동작하며, 공개된 리포스트 목록을 화면에서 읽어 추첨을 수행합니다. 서버로 데이터를 전송하지 않습니다.</p>
+      <p class="note">확장 프로그램은 기본적으로 브라우저 내에서 동작하며, 화면에 공개된 리포스트 목록 및 팔로워/팔로잉 목록을 읽어 추첨(Raffle 모드) 및 맞팔로우 확인(Follow 모드)을 수행합니다. 어떠한 사용자 데이터도 외부 서버로 전송하지 않습니다.</p>
     </div>
 
     <div class="section card">
       <h2>1. 사용자 데이터 처리 여부</h2>
-      <p>확장 프로그램은 페이지에서 보이는 공개 정보(사용자 아이디/핸들, 게시물 URL·ID 등)를 일시적으로 처리하여 목록 정렬과 추첨을 수행합니다. 또한 사용 편의를 위해 UI 설정(정렬 기준, 키워드 제외, 당첨자 수 등)을 <em>브라우저 로컬 저장소</em>에 보관할 수 있습니다.</p>
+      <p>확장 프로그램은 페이지에서 보이는 공개 정보(사용자 아이디/핸들, 닉네임, 프로필 설명, 팔로우 상태 등)를 일시적으로 처리하여 목록 정렬, 추첨, 맞팔로우 여부 확인 기능을 수행합니다. 또한 사용 편의를 위해 UI 설정(모드 상태, 당첨자 수 등)을 <em>브라우저 로컬 저장소</em>에 보관할 수 있습니다.</p>
     </div>
 
     <div class="section card">
       <h2>2. 포괄적 공개</h2>
       <h3>2-a. 수집·이용·공유 방법</h3>
       <ul>
-        <li><strong>수집</strong>: 사용자가 X(트위터) 리포스트 페이지를 열면, 확장 프로그램은 화면의 공개 DOM을 읽어 리포스터 계정을 파싱합니다.</li>
-        <li><strong>이용</strong>: 수집된 공개 데이터는 중복 제거·필터링·추첨 및 결과 내보내기(CSV/JSON 복사)에 사용됩니다.</li>
-        <li><strong>보관</strong>: 추첨 결과와 목록은 메모리에만 존재하며, 설정 값만 로컬 저장소에 저장됩니다. 사용자가 브라우저 데이터를 삭제하면 함께 삭제됩니다.</li>
-        <li><strong>공유</strong>: 기본적으로 제3자와 공유하지 않습니다. 사용자가 내보내기 또는 클립보드 복사를 선택하는 경우, 해당 내보내기 행위는 사용자가 직접 수신자를 결정합니다.</li>
+        <li><strong>수집</strong>: 사용자가 X(트위터) 리포스트 페이지 또는 팔로워/팔로잉 페이지를 열고 기능을 실행하면, 확장 프로그램은 화면의 공개 DOM을 파싱하여 계정 정보를 읽습니다.</li>
+        <li><strong>이용</strong>: 수집된 데이터는 중복 제거, 필터링, 무작위 추첨, 맞팔로우 상태 스캔 및 결과 내보내기(클립보드 복사)에만 사용됩니다.</li>
+        <li><strong>보관</strong>: 추첨 결과와 스캔 목록은 실행 중인 메모리에만 존재하며, 사용자가 탭을 닫거나 브라우저를 초기화하면 즉시 소멸합니다.</li>
+        <li><strong>공유</strong>: 프로그램 내부적으로 데이터를 외부와 자동 공유하지 않습니다. 단, 사용자가 텍스트, CSV, JSON 형태로 직접 '복사(Copy)' 버튼을 눌러 내보내는 경우 그 수신자는 사용자가 결정합니다.</li>
       </ul>
       <h3>2-b. 공유 대상</h3>
-      <p>기본 기능에서 사용자 데이터를 외부 <strong>제3자에게 제공하지 않습니다</strong>. 분석/광고 SDK, 원격 서버, 클라우드 전송을 사용하지 않습니다. 단, 사용자가 자발적으로 결과 파일을 전송·게시하는 경우 그 수신자(예: 이벤트 당첨 공지 대상)는 사용자가 지정합니다.</p>
+      <p>기본 기능에서 사용자 데이터를 외부 <strong>제3자에게 절대 제공하지 않습니다</strong>. 어떠한 분석 도구, 광고 SDK, 원격 서버, 클라우드 전송 기능도 포함되어 있지 않습니다. 사용자가 자발적으로 결과 데이터를 복사하여 외부 플랫폼에 게시하는 경우에만 데이터가 공유됩니다.</p>
     </div>
 
     <div class="section card">
       <h2>추가 안내</h2>
       <ul>
-        <li><strong>보안</strong>: 데이터 처리는 브라우저 환경에 한정됩니다.</li>
-        <li><strong>아동</strong>: 아동을 대상으로 하지 않습니다.</li>
-        <li><strong>정책 변경</strong>: 내용이 변경되는 경우 본 페이지에 갱신일과 함께 게시합니다.</li>
-        <li><strong>연락처</strong>: 문의는 <a link="www.naver.com">bryan131@naver.com</a> 으로 연락해 주세요.</li>
+        <li><strong>보안</strong>: 데이터 처리는 전적으로 사용자의 브라우저 환경 내에서만 안전하게 이루어집니다.</li>
+        <li><strong>아동</strong>: 아동을 특별히 대상으로 하지 않는 유틸리티 도구입니다.</li>
+        <li><strong>정책 변경</strong>: 기능 추가(예: Cleaner 모드 등)로 처리방침이 변경될 경우 본 페이지의 갱신일과 함께 새 내용을 게시합니다.</li>
+        <li><strong>연락처</strong>: 문의 사항은 <a href="mailto:bryan131@naver.com">bryan131@naver.com</a> 으로 연락해 주세요.</li>
       </ul>
     </div>
   </section>
@@ -134,41 +278,42 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="section card">
       <h2>Overview</h2>
       <p>This Privacy Policy explains how <strong>X Reposts Raffle Extension</strong> (“the Extension”) handles user data. Whenever the Extension processes user data, this policy provides accurate and up‑to‑date information.</p>
-      <p class="note">The Extension works locally in your browser. It reads the public retweeters list rendered on the page to run sorting and raffles. No data is sent to any server.</p>
+      <p class="note">The Extension works strictly locally within your browser. It reads the public retweeters list and followers/following lists rendered on the page to run raffles (Raffle mode) and mutual follow checks (Follow mode). Absolutely no data is sent to any external server.</p>
     </div>
 
     <div class="section card">
       <h2>1. Whether We Process User Data</h2>
-      <p>The Extension temporarily processes publicly visible information on the page (e.g., usernames/handles, post URLs/IDs) to sort participants and draw winners. For convenience, UI preferences (sorting, exclude keywords, number of winners, etc.) may be stored in <em>browser local storage</em>.</p>
+      <p>The Extension temporarily processes publicly visible information on the active page (e.g., usernames/handles, display names, bios, follow status) to sort participants, draw winners, and check mutual follow status. For your convenience, basic UI preferences may be stored securely in your <em>browser's local storage</em>.</p>
     </div>
 
     <div class="section card">
       <h2>2. Comprehensive Disclosure</h2>
       <h3>2-a. How We Collect, Use, and Share</h3>
       <ul>
-        <li><strong>Collect</strong>: When you open an X (Twitter) retweets page, the Extension parses the public DOM to read retweeter accounts.</li>
-        <li><strong>Use</strong>: The data is used for de-duplication, filtering, random draw, and exporting results (CSV/JSON copy).</li>
-        <li><strong>Store</strong>: Raffle lists/results live in memory only; settings may persist in local storage. Clearing browser data removes them.</li>
-        <li><strong>Share</strong>: No automatic sharing. If you export or copy, <em>you</em> decide the recipients of that exported data.</li>
+        <li><strong>Collect</strong>: When you open an X (Twitter) retweets or followers/following page and start the scan, the Extension parses the public DOM to read account details.</li>
+        <li><strong>Use</strong>: The extracted data is strictly used for de-duplication, filtering, random drawing, mutual follow scanning, and exporting results via clipboard.</li>
+        <li><strong>Store</strong>: Raffle and scan lists exist only in active memory and vanish as soon as the tab is closed. Settings persist only locally.</li>
+        <li><strong>Share</strong>: We do not share any data automatically. If you choose to copy results (Text/CSV/JSON), <em>you</em> are in full control of where that data goes.</li>
       </ul>
       <h3>2-b. Parties With Whom Data Is Shared</h3>
-      <p>By default, we <strong>do not share</strong> user data with any third parties. We do not use analytics/ads SDKs, remote servers, or cloud transfer. If you voluntarily send or publish exported results, the recipients (e.g., announcement audiences) are chosen by you.</p>
+      <p>By default, we <strong>do not share</strong> user data with any third parties. We strictly do not use tracking analytics, ad SDKs, remote servers, or cloud transfers. Data is only shared if you voluntarily copy the exported results and post them elsewhere.</p>
     </div>
 
     <div class="section card">
       <h2>Additional Information</h2>
       <ul>
-        <li><strong>Security</strong>: Processing is confined to the browser environment.</li>
-        <li><strong>Children</strong>: Not directed to children.</li>
-        <li><strong>Changes</strong>: If we change this policy, we will post the update date here.</li>
-        <li><strong>Contact</strong>: Reach us at <a link="www.naver.com">bryan131@naver.com</a>.</li>
+        <li><strong>Security</strong>: All data processing is strictly confined to your local browser environment.</li>
+        <li><strong>Children</strong>: This is a general utility tool and is not directed at children.</li>
+        <li><strong>Changes</strong>: If feature updates (e.g., the upcoming Cleaner mode) require policy changes, we will post the update date here.</li>
+        <li><strong>Contact</strong>: If you have any questions, reach us at <a href="mailto:bryan131@naver.com">bryan131@naver.com</a>.</li>
       </ul>
     </div>
+  </section>
   <hr>
 </main>
 
 <footer>
-  © 2025 X Reposts Raffle Extension
+  © 2026 X Reposts Raffle Extension
 </footer>
 </body>
 </html>
