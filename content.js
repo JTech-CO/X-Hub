@@ -1,19 +1,24 @@
 (() => {
   // ========= Utilities =========
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const $  = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   if (window.__X_RAFFLE_PANEL__) return;
   window.__X_RAFFLE_PANEL__ = true;
 
-  // ========= Scope =========
+  // ========= Common Helpers =========
+  function esc(s) {
+    return (s || '').replace(/[&<>"']/g, m =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  }
+
+  // ========= Scope Detection (Raffle) =========
   const PRIMARY = document.querySelector('[data-testid="primaryColumn"]')
-               || document.querySelector('main')
-               || document.body;
+    || document.querySelector('main')
+    || document.body;
 
   function detectRetweetsScope() {
-    // aria-label + role = region
     const labelSelectors = [
       '[role="region"][aria-label*="Retweets" i]',
       '[role="region"][aria-label*="리포스트"]',
@@ -24,13 +29,13 @@
       const el = PRIMARY.querySelector(sel);
       if (el) return el;
     }
-    // region 중 UserCell 최다 컨테이너
+    // Find region with most UserCells
     const regions = Array.from(PRIMARY.querySelectorAll('[role="region"]'));
     if (regions.length) {
-      regions.sort((a,b)=> ($$('[data-testid="UserCell"]', b).length - $$('[data-testid="UserCell"]', a).length));
+      regions.sort((a, b) => ($$('[data-testid="UserCell"]', b).length - $$('[data-testid="UserCell"]', a).length));
       if ($$('[data-testid="UserCell"]', regions[0]).length > 0) return regions[0];
     }
-    // 폴백
+    // Fallback
     return PRIMARY;
   }
   const RETWEETS_SCOPE = detectRetweetsScope();
@@ -48,130 +53,405 @@
     );
   }
 
-  function getScrollTarget() {
-    const el = RETWEETS_SCOPE;
-    if (!el) return window;
+  function getScrollTarget(scopeEl) {
+    if (!scopeEl) return window;
     const canScroll = (n) =>
       n && (n.scrollHeight > n.clientHeight + 20 || getComputedStyle(n).overflowY === 'auto');
-    let p = el;
+    let p = scopeEl;
     while (p && p !== document.documentElement) {
       if (canScroll(p)) return p;
       p = p.parentElement;
     }
     return window;
   }
-  const SCROLLER = getScrollTarget();
+
+  function doScroll(scroller) {
+    if (scroller === window) {
+      window.scrollBy(0, Math.max(400, window.innerHeight * 0.9));
+    } else {
+      scroller.scrollTop += Math.max(400, (scroller.clientHeight || window.innerHeight) * 0.9);
+    }
+  }
 
   // ========= Shadow Panel =========
   const host = document.createElement('div');
   Object.assign(host.style, {
     all: 'unset', position: 'fixed', top: '12px', right: '12px',
-    zIndex: 2147483647, width: '380px', pointerEvents: 'auto'
+    zIndex: 2147483647, width: '440px', pointerEvents: 'auto'
   });
   document.documentElement.appendChild(host);
-  const shadow = host.attachShadow({mode: 'open'});
+  const shadow = host.attachShadow({ mode: 'open' });
 
-  const style = document.createElement('style');
-  style.textContent = `
-    :host { all: initial; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    .card { background: rgba(17,24,39,.96); color:#e5e7eb; border:1px solid #1f2937; border-radius:14px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-    .row { display:flex; gap:8px; align-items:center; }
-    .col { display:flex; flex-direction:column; gap:10px; }
-    .btn { background:#374151; color:#e5e7eb; border:1px solid #4b5563; border-radius:10px; padding:8px 10px; cursor:pointer; }
-    .btn.primary { background:#2563eb; border-color:#1d4ed8; }
-    .btn.danger  { background:#7f1d1d; border-color:#991b1b; }
-    .btn:disabled { opacity:.6; cursor:default; }
-    .pill { font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid #374151; background:#111827; }
-    input, select { background:#111827; color:#e5e7eb; border:1px solid #374151; border-radius:10px; padding:8px 10px; width:100%; }
-    h3 { margin:0; font-size:16px; font-weight:700; }
-    small { color:#9ca3af; }
-    .monospace { font-family: ui-monospace, Menlo, Consolas, monospace; }
-    .list { max-height: 320px; overflow:auto; border:1px solid #1f2937; border-radius:10px; padding:6px; background:#0b1220; }
-    .user { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:8px; border-radius:8px; }
-    .user:nth-child(odd) { background:#0f172a; }
-    .tag { font-size:11px; padding:2px 6px; border-radius:999px; background:#374151; color:#c7d2fe; margin-left:6px; }
-    a.clean { color:#93c5fd; text-decoration:none; }
+  // ========= CSS =========
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    :host {
+      all: initial;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* --- Card Container --- */
+    .card {
+      background: #000000;
+      color: #e0e0e0;
+      border: 1px solid #333333;
+      border-radius: 0;
+      box-shadow: 0 8px 32px rgba(0,0,0,.6);
+    }
+    .card-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* --- Header --- */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #333333;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    h3 {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    /* --- Section Separator --- */
+    .separator {
+      width: 100%;
+      height: 1px;
+      background: #333333;
+      margin: 0;
+    }
+
+    /* --- Rows & Columns --- */
+    .row { display: flex; gap: 8px; align-items: center; }
+    .col { display: flex; flex-direction: column; gap: 10px; }
+
+    /* --- Buttons --- */
+    .btn {
+      display: inline-block;
+      padding: 8px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      color: #ffffff;
+      background: transparent;
+      border: 1px solid #ffffff;
+      border-radius: 0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: #ffffff;
+      color: #000000;
+    }
+    .btn.secondary {
+      border-color: #333333;
+      color: #aaaaaa;
+    }
+    .btn.secondary:hover {
+      background: #333333;
+      color: #ffffff;
+      border-color: #333333;
+    }
+    .btn.accent {
+      border-color: #ffffff;
+      color: #000000;
+      background: #ffffff;
+    }
+    .btn.accent:hover {
+      background: transparent;
+      color: #ffffff;
+    }
+    .btn.green {
+      border-color: #22c55e;
+      color: #22c55e;
+      background: transparent;
+    }
+    .btn.green:hover {
+      background: #22c55e;
+      color: #000000;
+    }
+    .btn.orange {
+      border-color: #f97316;
+      color: #f97316;
+      background: transparent;
+      font-size: 11px;
+      padding: 5px 10px;
+    }
+    .btn.orange:hover {
+      background: #f97316;
+      color: #000000;
+    }
+    .btn.close-btn {
+      padding: 4px 10px;
+      font-size: 18px;
+      font-family: 'Inter', sans-serif;
+      line-height: 1;
+      border-color: #333333;
+      color: #aaaaaa;
+    }
+    .btn.close-btn:hover {
+      border-color: #ffffff;
+      color: #ffffff;
+      background: transparent;
+    }
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    /* --- Status Badges --- */
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 400;
+      padding: 4px 10px;
+      border: 1px solid #333333;
+      background: #0a0a0a;
+      color: #aaaaaa;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge b {
+      color: #e0e0e0;
+      font-weight: 700;
+    }
+
+    /* --- Inputs & Selects --- */
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      background: #111111;
+      border: 1px solid #333333;
+      border-radius: 0;
+      color: #e0e0e0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      transition: border-color 0.2s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #ffffff;
+    }
+    input::placeholder {
+      color: #777777;
+    }
+    select option {
+      background: #111111;
+      color: #e0e0e0;
+    }
+
+    /* --- User List --- */
+    .list {
+      max-height: 320px;
+      overflow: auto;
+      border: 1px solid #333333;
+      padding: 0;
+      background: #0a0a0a;
+    }
+    .list::-webkit-scrollbar { width: 4px; }
+    .list::-webkit-scrollbar-track { background: #0a0a0a; }
+    .list::-webkit-scrollbar-thumb { background: #333333; }
+    .list::-webkit-scrollbar-thumb:hover { background: #555555; }
+
+    .user {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #1a1a1a;
+      transition: background 0.15s ease;
+    }
+    .user:last-child { border-bottom: none; }
+    .user:hover {
+      background: #111111;
+    }
+    .user b {
+      font-weight: 600;
+      color: #ffffff;
+      font-size: 14px;
+    }
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 400;
+      padding: 2px 6px;
+      border: 1px solid #333333;
+      background: transparent;
+      color: #aaaaaa;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 6px;
+    }
+    .user-desc {
+      font-size: 13px;
+      color: #aaaaaa;
+      font-weight: 300;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      margin-top: 3px;
+    }
+    a.link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
+      text-transform: uppercase;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s ease;
+      white-space: nowrap;
+    }
+    a.link:hover {
+      border-bottom-color: #ffffff;
+    }
+
+    /* --- Footer Note --- */
+    .footnote {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #777777;
+      letter-spacing: 0.02em;
+    }
+
+    /* --- Button Group (Copy) --- */
+    .btn-group {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid #333333;
+      min-width: 0;
+      flex: 1;
+    }
+    .btn-group-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #aaaaaa;
+      padding: 8px 10px;
+      background: #0a0a0a;
+      white-space: nowrap;
+      border-right: 1px solid #333333;
+      display: flex;
+      align-items: center;
+    }
+    .btn-group .btn {
+      border: none;
+      border-right: 1px solid #333333;
+      padding: 8px 10px;
+      flex: 1;
+      text-align: center;
+      min-width: 0;
+    }
+    .btn-group .btn:last-child {
+      border-right: none;
+    }
+
+    /* --- Placeholder --- */
+    .placeholder {
+      padding: 40px 0;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #555555;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
   `;
 
+  // ========= HTML Shell =========
   const wrap = document.createElement('div');
   wrap.className = 'card';
   wrap.innerHTML = `
-    <div style="padding:12px" class="col">
-      <div class="row" style="justify-content:space-between">
+    <div class="card-body">
+      <div class="header">
         <h3>X Reposts Raffle</h3>
-        <button id="close" class="btn danger" title="Close">×</button>
-      </div>
-
-      <div class="col">
-        <div class="row" style="flex-wrap:wrap">
-          <button id="start" class="btn primary" title="Auto scroll & collect">Start</button>
-          <button id="stop"  class="btn" disabled>Stop</button>
-          <button id="clear" class="btn">Clear</button>
-          <!-- Point 제거, Follower Only 추가 -->
-          <button id="followersOnly" class="btn" title="Show only users who follow me" disabled>Follower Only</button>
-        </div>
-        <div class="row">
-          <span class="pill">Found: <b id="count">0</b></span>
-          <span class="pill">New/last tick: <b id="delta">0</b></span>
-          <span class="pill">Status: <b id="status">idle</b></span>
+        <div class="header-right">
+          <button id="mode-btn" class="btn orange" title="Switch mode">Raffle</button>
+          <button id="close" class="btn close-btn" title="Close">×</button>
         </div>
       </div>
-
-      <div class="col">
-        <div class="row">
-          <select id="sort">
-            <option value="handle">정렬: 핸들</option>
-            <option value="nickname">정렬: 닉네임</option>
-          </select>
-          <input id="filter" placeholder="검색(핸들/닉네임/소개)" />
-        </div>
-        <div class="row">
-          <input id="winners" type="number" min="1" value="1" style="width:90px"/>
-          <button id="draw" class="btn">추첨</button>
-          <button id="copy" class="btn">복사</button>
-          <button id="csv" class="btn">CSV</button>
-          <button id="json" class="btn">JSON</button>
-        </div>
-      </div>
-
-      <div id="list" class="list"></div>
-      <small>외부 서버로 데이터를 전송하지 않습니다.</small>
-      <small>현재 스코프: <span class="monospace">${RETWEETS_SCOPE === PRIMARY ? 'PRIMARY' : 'RETWEETS_SCOPE'}</span> (사이드바/팔로우 추천 제외)</small>
+      <div id="mode-body"></div>
     </div>
   `;
-  shadow.append(style, wrap);
+  shadow.append(styleEl, wrap);
 
-  const ui = {
-    close: shadow.getElementById('close'),
-    start: shadow.getElementById('start'),
-    stop : shadow.getElementById('stop'),
-    clear: shadow.getElementById('clear'),
-    followersOnly: shadow.getElementById('followersOnly'),
-    count: shadow.getElementById('count'),
-    delta: shadow.getElementById('delta'),
-    status: shadow.getElementById('status'),
-    sort : shadow.getElementById('sort'),
-    filter: shadow.getElementById('filter'),
-    winners: shadow.getElementById('winners'),
-    draw: shadow.getElementById('draw'),
-    copy: shadow.getElementById('copy'),
-    csv : shadow.getElementById('csv'),
-    json: shadow.getElementById('json'),
-    list: shadow.getElementById('list'),
+  const modeBtn = shadow.getElementById('mode-btn');
+  const modeBody = shadow.getElementById('mode-body');
+
+  shadow.getElementById('close').onclick = () => {
+    raffleRunning = false;
+    followRunning = false;
+    host.remove();
+    window.__X_RAFFLE_PANEL__ = false;
   };
 
-  // ========= State =========
-  let running = false;
-  let extracted = false; // RT 수집 완료 여부
-  let users = [];
-  let seen = new Set();
-  let lastCount = 0;
-  let stableTicks = 0;
-  const MAX_STABLE = 3;
-  const PAUSE = 700;
-  const MAX_TICKS = 200;
+  // ========= Mode System =========
+  let currentMode = 'raffle';
+  const MODES = ['raffle', 'follow', 'cleaner'];
+  const MODE_LABELS = { raffle: 'Raffle', follow: 'Follow', cleaner: 'Cleaner' };
 
-  // ========= Helpers =========
+  modeBtn.onclick = () => {
+    // Stop running processes before switching
+    raffleRunning = false;
+    followRunning = false;
+    const idx = MODES.indexOf(currentMode);
+    currentMode = MODES[(idx + 1) % MODES.length];
+    modeBtn.textContent = MODE_LABELS[currentMode];
+    renderModeBody();
+  };
+
+  function renderModeBody() {
+    switch (currentMode) {
+      case 'raffle': renderRaffleMode(); break;
+      case 'follow': renderFollowMode(); break;
+      case 'cleaner': renderCleanerMode(); break;
+    }
+  }
+
+  // ================================================================
+  //  MODE 1 — RAFFLE
+  // ================================================================
+  let raffleRunning = false;
+  let raffleExtracted = false;
+  let raffleUsers = [];
+  let raffleSeen = new Set();
+  let raffleLastCount = 0;
+  let raffleStableTicks = 0;
+  const RAFFLE_MAX_STABLE = 3;
+  const RAFFLE_PAUSE = 700;
+  const RAFFLE_MAX_TICKS = 200;
+  const RAFFLE_SCROLLER = getScrollTarget(RETWEETS_SCOPE);
+
   const FOLLOW_LABELS = [
     'Follows you',
     '나를 팔로우합니다',
@@ -180,32 +460,128 @@
     '팔로우합니다',
     '팔로우함'
   ];
+
   function isFollowerCell(cell) {
-    // aria-label 우선 확인
     if (cell.querySelector('[aria-label*="Follows you" i]')) return true;
     if (cell.querySelector('[aria-label*="나를 팔로우합니다"]')) return true;
-    
-    // 텍스트 스캔(로케일 혼용 대응)
     const text = (cell.innerText || cell.textContent || '').trim();
     return FOLLOW_LABELS.some(lbl => text.toLowerCase().includes(lbl.toLowerCase()));
   }
 
-  function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+  function raffleParseRT() {
+    const cells = $$('[data-testid="UserCell"]', RETWEETS_SCOPE);
+    let added = 0;
+    for (const c of cells) {
+      if (isInExcludedArea(c)) continue;
+      try {
+        let handle = '';
+        const links = $$('a[href^="/"], a[href^="https://x.com/"]', c);
+        for (const a of links) {
+          const href = a.getAttribute('href') || '';
+          if (/^https?:\/\/x\.com\//.test(href)) {
+            const seg = href.split('x.com/')[1].split('?')[0];
+            if (seg && !seg.startsWith('i/') && !seg.includes('/status/')) { handle = seg.replace(/\/+$/, ''); break; }
+          } else if (href.startsWith('/')) {
+            const seg = href.slice(1).split('?')[0];
+            if (seg && !seg.startsWith('i/') && !seg.includes('/status/')) { handle = seg.replace(/\/+$/, ''); break; }
+          }
+        }
+        if (!handle) continue;
+        let nickname = '';
+        const nameEl = c.querySelector('div[dir="ltr"] span');
+        if (nameEl) nickname = nameEl.textContent.trim();
+        else nickname = (c.textContent || '').split('\n')[0].trim();
+        let description = '';
+        const descEl = c.querySelector('div[dir="auto"][lang]');
+        if (descEl) description = descEl.textContent.trim();
+        const followsMe = isFollowerCell(c);
+        if (!raffleSeen.has(handle)) {
+          raffleUsers.push({ handle, nickname, description, followsMe });
+          raffleSeen.add(handle);
+          added++;
+        }
+      } catch (e) { }
+    }
+    return added;
+  }
 
-  function renderList() {
-    const q = (ui.filter.value || '').trim().toLowerCase();
-    const sorted = [...users];
-    if (ui.sort.value === 'handle') sorted.sort((a,b)=>a.handle.localeCompare(b.handle));
-    else sorted.sort((a,b)=>(a.nickname||'').localeCompare(b.nickname||''));
+  function renderRaffleMode() {
+    modeBody.innerHTML = `
+      <div class="col">
+        <div class="row" style="flex-wrap:wrap">
+          <button id="r-start" class="btn accent" title="Auto scroll & collect">Start</button>
+          <button id="r-stop"  class="btn secondary" disabled>Stop</button>
+          <button id="r-clear" class="btn secondary">Clear</button>
+          <button id="r-fo" class="btn secondary" title="Show only users who follow me" disabled>Follower Only</button>
+        </div>
+        <div class="row" style="flex-wrap:wrap">
+          <span class="badge">Found: <b id="r-count">${raffleUsers.length}</b></span>
+          <span class="badge">New: <b id="r-delta">0</b></span>
+          <span class="badge">Status: <b id="r-status">idle</b></span>
+        </div>
+      </div>
 
+      <div class="separator"></div>
+
+      <div class="col">
+        <div class="row">
+          <select id="r-sort">
+            <option value="handle">Sort: Handle</option>
+            <option value="nickname">Sort: Nickname</option>
+          </select>
+          <input id="r-filter" placeholder="Search (handle / nickname / bio)" />
+        </div>
+        <div class="row" style="gap:8px">
+          <input id="r-winners" type="number" min="1" value="1" style="width:80px; flex-shrink:0"/>
+          <button id="r-draw" class="btn green" style="flex-shrink:0">Raffle</button>
+          <div class="btn-group">
+            <span class="btn-group-label">Copy</span>
+            <button id="r-copy" class="btn">Text</button>
+            <button id="r-csv" class="btn">CSV</button>
+            <button id="r-json" class="btn">JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="r-list" class="list"></div>
+      <span class="footnote">Data is not transmitted to external servers.</span>
+      <span class="footnote">Scope: ${RETWEETS_SCOPE === PRIMARY ? 'PRIMARY' : 'RETWEETS_SCOPE'}</span>
+    `;
+    wireRaffle();
+    raffleRenderList();
+  }
+
+  function wireRaffle() {
+    const el = (id) => shadow.getElementById(id);
+    el('r-start').onclick = raffleAutoScroll;
+    el('r-stop').onclick = () => { raffleRunning = false; };
+    el('r-clear').onclick = raffleClear;
+    el('r-fo').onclick = raffleFollowersOnly;
+    el('r-sort').onchange = raffleRenderList;
+    el('r-filter').oninput = raffleRenderList;
+    el('r-draw').onclick = raffleDrawWinners;
+    el('r-copy').onclick = () => raffleCopyText(raffleUsers.map(u => `${u.nickname} (@${u.handle})`).join('\n'));
+    el('r-csv').onclick = () => raffleCopyText(raffleToCSV(raffleUsers));
+    el('r-json').onclick = () => raffleCopyText(JSON.stringify({ count: raffleUsers.length, users: raffleUsers }, null, 2));
+  }
+
+  function raffleRenderList() {
+    const filterEl = shadow.getElementById('r-filter');
+    const sortEl = shadow.getElementById('r-sort');
+    const listEl = shadow.getElementById('r-list');
+    const countEl = shadow.getElementById('r-count');
+    if (!listEl) return;
+    const q = (filterEl?.value || '').trim().toLowerCase();
+    const sorted = [...raffleUsers];
+    if (sortEl?.value === 'handle') sorted.sort((a, b) => a.handle.localeCompare(b.handle));
+    else sorted.sort((a, b) => (a.nickname || '').localeCompare(b.nickname || ''));
     const filtered = q
       ? sorted.filter(u =>
-          (u.handle||'').toLowerCase().includes(q) ||
-          (u.nickname||'').toLowerCase().includes(q) ||
-          (u.description||'').toLowerCase().includes(q))
+        (u.handle || '').toLowerCase().includes(q) ||
+        (u.nickname || '').toLowerCase().includes(q) ||
+        (u.description || '').toLowerCase().includes(q))
       : sorted;
-
-    ui.list.innerHTML = filtered.map(u => `
+    listEl.innerHTML = filtered.map(u => `
       <div class="user">
         <div>
           <div>
@@ -213,148 +589,352 @@
             <span class="tag">@${esc(u.handle)}</span>
             ${u.followsMe ? '<span class="tag">Follows you</span>' : ''}
           </div>
-          <div style="font-size:12px; color:#cbd5e1; white-space:pre-wrap">${esc(u.description||'')}</div>
+          <div class="user-desc">${esc(u.description || '')}</div>
         </div>
-        <a class="clean" href="https://x.com/${encodeURIComponent(u.handle)}" target="_blank">Open</a>
+        <a class="link" href="https://x.com/${encodeURIComponent(u.handle)}" target="_blank">Open</a>
       </div>
     `).join('');
-
-    ui.count.textContent = users.length;
+    if (countEl) countEl.textContent = raffleUsers.length;
   }
 
-  // ========= Core parsing & collection =========
-  function parseCells() {
-    const cells = $$('[data-testid="UserCell"]', RETWEETS_SCOPE);
+  async function raffleAutoScroll() {
+    raffleRunning = true; raffleExtracted = false; raffleStableTicks = 0; raffleLastCount = raffleUsers.length;
+    const statusEl = shadow.getElementById('r-status');
+    const deltaEl = shadow.getElementById('r-delta');
+    const startBtn = shadow.getElementById('r-start');
+    const stopBtn = shadow.getElementById('r-stop');
+    const foBtn = shadow.getElementById('r-fo');
+    if (statusEl) statusEl.textContent = 'running';
+    if (startBtn) startBtn.disabled = true;
+    if (stopBtn) stopBtn.disabled = false;
+    if (foBtn) foBtn.disabled = true;
+
+    for (let tick = 0; raffleRunning && tick < RAFFLE_MAX_TICKS; tick++) {
+      const added = raffleParseRT();
+      if (deltaEl) deltaEl.textContent = String(added);
+      raffleRenderList();
+      if (raffleUsers.length === raffleLastCount) {
+        raffleStableTicks++;
+        if (raffleStableTicks >= RAFFLE_MAX_STABLE) break;
+      } else {
+        raffleLastCount = raffleUsers.length; raffleStableTicks = 0;
+      }
+      doScroll(RAFFLE_SCROLLER);
+      await sleep(RAFFLE_PAUSE);
+    }
+
+    if (statusEl) statusEl.textContent = 'stopped';
+    if (startBtn) startBtn.disabled = false;
+    if (stopBtn) stopBtn.disabled = true;
+    raffleRunning = false; raffleExtracted = true;
+    if (foBtn) foBtn.disabled = raffleUsers.length === 0;
+  }
+
+  function raffleClear() {
+    raffleUsers = []; raffleSeen = new Set(); raffleExtracted = false;
+    const deltaEl = shadow.getElementById('r-delta');
+    const statusEl = shadow.getElementById('r-status');
+    const foBtn = shadow.getElementById('r-fo');
+    if (deltaEl) deltaEl.textContent = '0';
+    if (statusEl) statusEl.textContent = 'idle';
+    if (foBtn) foBtn.disabled = true;
+    raffleRenderList();
+  }
+
+  function raffleFollowersOnly() {
+    if (!raffleExtracted || raffleUsers.length === 0) return;
+    raffleUsers = raffleUsers.filter(u => u.followsMe === true);
+    raffleRenderList();
+    const foBtn = shadow.getElementById('r-fo');
+    const statusEl = shadow.getElementById('r-status');
+    if (foBtn) foBtn.disabled = true;
+    if (statusEl) { statusEl.textContent = 'followers-only'; setTimeout(() => statusEl.textContent = 'idle', 1200); }
+  }
+
+  function raffleDrawWinners() {
+    const winnersEl = shadow.getElementById('r-winners');
+    const n = Math.max(1, Math.min(parseInt(winnersEl?.value || '1', 10), raffleUsers.length || 1));
+    const pool = [...raffleUsers];
+    const picked = new Set();
+    while (picked.size < n && pool.length) picked.add(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    const res = Array.from(picked);
+    alert(`Winners (${n})\n` + res.map(u => `${u.nickname} (@${u.handle})`).join('\n'));
+  }
+
+  function raffleToCSV(rows) {
+    const header = ['handle', 'nickname', 'description'];
+    const escCSV = (s = '') => `"${String(s).replace(/"/g, '""')}"`;
+    return [header.join(','), ...rows.map(r => [r.handle, r.nickname, r.description].map(escCSV).join(','))].join('\n');
+  }
+
+  function raffleCopyText(txt) {
+    const statusEl = shadow.getElementById('r-status');
+    navigator.clipboard.writeText(txt).then(() => {
+      if (statusEl) { statusEl.textContent = 'copied'; setTimeout(() => statusEl.textContent = 'idle', 1200); }
+    });
+  }
+
+  // ================================================================
+  //  MODE 2 — FOLLOW (Mutual Follow Check)
+  // ================================================================
+  let followRunning = false;
+  let followUsers = [];
+  let followSeen = new Set();
+  let followLastCount = 0;
+  let followStableTicks = 0;
+  const FOLLOW_MAX_STABLE = 5;
+  const FOLLOW_PAUSE = 800;
+  const FOLLOW_MAX_TICKS = 200;
+
+  function getPageType() {
+    const path = location.pathname;
+    if (path.endsWith('/followers') || path.includes('/followers/')) return 'followers';
+    if (path.endsWith('/following') || path.includes('/following/')) return 'following';
+    if (path.includes('/verified_followers')) return 'followers';
+    return null;
+  }
+
+  function parseFollowCell(cell) {
+    // Extract username from links
+    let username = '';
+    const links = $$('a[href^="/"]', cell);
+    for (const a of links) {
+      const href = a.getAttribute('href') || '';
+      const seg = href.slice(1).split('?')[0];
+      if (seg && !seg.startsWith('i/') && !seg.includes('/')) {
+        username = seg;
+        break;
+      }
+    }
+    if (!username) return null;
+
+    // Extract display name
+    let displayName = '';
+    const nameEl = cell.querySelector('div[dir="ltr"] span');
+    if (nameEl) displayName = nameEl.textContent.trim();
+
+    // Check "Follows you" badge
+    const cellText = (cell.innerText || cell.textContent || '').trim();
+    const hasFollowsYou =
+      cellText.includes('Follows you') ||
+      cellText.includes('나를 팔로우합니다') ||
+      cellText.includes('나를 팔로우함') ||
+      cellText.includes('나를 팔로우 중');
+
+    // Check if I'm following them (button state)
+    let isMyFollowing = false;
+    const buttons = $$('button[role="button"], button', cell);
+    for (const btn of buttons) {
+      const btnText = (btn.textContent || '').trim();
+      const testid = btn.getAttribute('data-testid') || '';
+      if (testid.toLowerCase().includes('unfollow') ||
+        btnText === '팔로잉' || btnText === 'Following') {
+        isMyFollowing = true;
+        break;
+      }
+    }
+
+    return { username, displayName, hasFollowsYou, isMyFollowing };
+  }
+
+  function followParseCells() {
+    const pageType = getPageType();
+    if (!pageType) return 0;
+    const cells = $$('[data-testid="UserCell"]');
     let added = 0;
+    for (const cell of cells) {
+      if (isInExcludedArea(cell)) continue;
+      const info = parseFollowCell(cell);
+      if (!info) continue;
 
-    for (const c of cells) {
-      if (isInExcludedArea(c)) continue;
-      try {
-        let handle = "";
-        const links = $$('a[href^="/"], a[href^="https://x.com/"]', c);
-        for (const a of links) {
-          const href = a.getAttribute('href') || '';
-          if (/^https?:\/\/x\.com\//.test(href)) {
-            const seg = href.split('x.com/')[1].split('?')[0];
-            if (seg && !seg.startsWith('i/') && !seg.includes('/status/')) { handle = seg.replace(/\/+$/,''); break; }
-          } else if (href.startsWith('/')) {
-            const seg = href.slice(1).split('?')[0];
-            if (seg && !seg.startsWith('i/') && !seg.includes('/status/')) { handle = seg.replace(/\/+$/,''); break; }
-          }
-        }
-        if (!handle) continue;
+      let isTarget = false;
+      if (pageType === 'followers') {
+        // Case 1: They follow me, but I don't follow them back
+        isTarget = !info.isMyFollowing;
+      } else if (pageType === 'following') {
+        // Case 2: I follow them, but they don't follow me back
+        isTarget = info.isMyFollowing && !info.hasFollowsYou;
+      }
 
-        let nickname = '';
-        const nameEl = c.querySelector('div[dir="ltr"] span');
-        if (nameEl) nickname = nameEl.textContent.trim();
-        else nickname = (c.textContent||'').split('\n')[0].trim();
-
-        let description = '';
-        const descEl = c.querySelector('div[dir="auto"][lang]');
-        if (descEl) description = descEl.textContent.trim();
-
-        const followsMe = isFollowerCell(c);
-
-        if (!seen.has(handle)) {
-          users.push({ handle, nickname, description, followsMe });
-          seen.add(handle);
-          added++;
-        }
-      } catch (e) {}
+      if (isTarget && !followSeen.has(info.username)) {
+        followUsers.push(info);
+        followSeen.add(info.username);
+        added++;
+      }
     }
     return added;
   }
 
-  async function autoScrollCollect() {
-    running = true; extracted = false; stableTicks = 0; lastCount = users.length;
-    ui.status.textContent = 'running'; ui.start.disabled = true; ui.stop.disabled = false;
-    ui.followersOnly.disabled = true; // 수집 중에는 비활성
+  function renderFollowMode() {
+    const pageType = getPageType();
+    const pageLabel = pageType === 'followers' ? 'Not Following Back'
+      : pageType === 'following' ? 'Not Followed Back'
+        : 'N/A';
 
-    for (let tick=0; running && tick<MAX_TICKS; tick++) {
-      const added = parseCells();
-      ui.delta.textContent = String(added);
-      renderList();
+    modeBody.innerHTML = `
+      <div class="col">
+        <div class="row" style="flex-wrap:wrap">
+          <span class="badge">Page: <b id="f-page">${pageType || 'unknown'}</b></span>
+          <span class="badge">Type: <b id="f-type">${pageLabel}</b></span>
+        </div>
+        <div class="row" style="flex-wrap:wrap">
+          <button id="f-start" class="btn accent" title="Auto scroll & scan">Start Scan</button>
+          <button id="f-stop"  class="btn secondary" disabled>Stop</button>
+          <button id="f-clear" class="btn secondary">Clear</button>
+        </div>
+        <div class="row" style="flex-wrap:wrap">
+          <span class="badge">Found: <b id="f-count">${followUsers.length}</b></span>
+          <span class="badge">New: <b id="f-delta">0</b></span>
+          <span class="badge">Status: <b id="f-status">idle</b></span>
+        </div>
+      </div>
 
-      if (users.length === lastCount) {
-        stableTicks++;
-        if (stableTicks >= MAX_STABLE) break;
+      <div class="separator"></div>
+
+      <div class="col">
+        <div class="row">
+          <input id="f-filter" placeholder="Search (username / display name)" />
+        </div>
+        <div class="row" style="gap:8px">
+          <div class="btn-group" style="flex:1">
+            <span class="btn-group-label">Copy</span>
+            <button id="f-copy" class="btn">Text</button>
+            <button id="f-csv" class="btn">CSV</button>
+            <button id="f-json" class="btn">JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="f-list" class="list"></div>
+      <span class="footnote">Data is not transmitted to external servers.</span>
+      <span class="footnote">${pageType ? `Scanning: /${pageType}` : 'Navigate to a followers/following page to use this mode.'}</span>
+    `;
+    wireFollow();
+    followRenderList();
+  }
+
+  function wireFollow() {
+    const el = (id) => shadow.getElementById(id);
+    el('f-start').onclick = followAutoScroll;
+    el('f-stop').onclick = () => { followRunning = false; };
+    el('f-clear').onclick = followClear;
+    el('f-filter').oninput = followRenderList;
+    el('f-copy').onclick = () => followCopyText(followUsers.map(u => `${u.displayName} (@${u.username})`).join('\n'));
+    el('f-csv').onclick = () => followCopyText(followToCSV(followUsers));
+    el('f-json').onclick = () => followCopyText(JSON.stringify({ count: followUsers.length, pageType: getPageType(), users: followUsers }, null, 2));
+
+    // Disable start if not on a valid page
+    if (!getPageType()) {
+      el('f-start').disabled = true;
+    }
+  }
+
+  function followRenderList() {
+    const filterEl = shadow.getElementById('f-filter');
+    const listEl = shadow.getElementById('f-list');
+    const countEl = shadow.getElementById('f-count');
+    if (!listEl) return;
+    const q = (filterEl?.value || '').trim().toLowerCase();
+    const sorted = [...followUsers].sort((a, b) => a.username.localeCompare(b.username));
+    const filtered = q
+      ? sorted.filter(u =>
+        (u.username || '').toLowerCase().includes(q) ||
+        (u.displayName || '').toLowerCase().includes(q))
+      : sorted;
+
+    const pageType = getPageType();
+    listEl.innerHTML = filtered.map(u => `
+      <div class="user">
+        <div>
+          <div>
+            <b>${esc(u.displayName || '(no name)')}</b>
+            <span class="tag">@${esc(u.username)}</span>
+            ${pageType === 'followers' ? '<span class="tag">Not followed</span>' : ''}
+            ${pageType === 'following' ? '<span class="tag">No followback</span>' : ''}
+          </div>
+        </div>
+        <a class="link" href="https://x.com/${encodeURIComponent(u.username)}" target="_blank">Open</a>
+      </div>
+    `).join('');
+    if (countEl) countEl.textContent = followUsers.length;
+  }
+
+  async function followAutoScroll() {
+    if (!getPageType()) return;
+    followRunning = true; followStableTicks = 0; followLastCount = followUsers.length;
+    const statusEl = shadow.getElementById('f-status');
+    const deltaEl = shadow.getElementById('f-delta');
+    const startBtn = shadow.getElementById('f-start');
+    const stopBtn = shadow.getElementById('f-stop');
+    if (statusEl) statusEl.textContent = 'scanning';
+    if (startBtn) startBtn.disabled = true;
+    if (stopBtn) stopBtn.disabled = false;
+
+    for (let tick = 0; followRunning && tick < FOLLOW_MAX_TICKS; tick++) {
+      const added = followParseCells();
+      if (deltaEl) deltaEl.textContent = String(added);
+      followRenderList();
+      if (followUsers.length === followLastCount) {
+        followStableTicks++;
+        if (followStableTicks >= FOLLOW_MAX_STABLE) break;
       } else {
-        lastCount = users.length; stableTicks = 0;
+        followLastCount = followUsers.length; followStableTicks = 0;
       }
-
-      if (SCROLLER === window) {
-        window.scrollBy(0, Math.max(400, window.innerHeight * 0.9));
-      } else {
-        SCROLLER.scrollTop += Math.max(400, (SCROLLER.clientHeight || window.innerHeight) * 0.9);
-      }
-      await sleep(PAUSE);
+      window.scrollBy(0, Math.max(400, window.innerHeight * 0.8));
+      await sleep(FOLLOW_PAUSE);
     }
 
-    ui.status.textContent = 'stopped';
-    ui.start.disabled = false; ui.stop.disabled = true;
-    running = false; extracted = true;
-    ui.followersOnly.disabled = users.length === 0; // 리스트가 있어야만 활성화
+    if (statusEl) statusEl.textContent = 'stopped';
+    if (startBtn) startBtn.disabled = false;
+    if (stopBtn) stopBtn.disabled = true;
+    followRunning = false;
   }
 
-  function stop() {
-    running = false;
-    extracted = true; // 수동 종료도 '추출 완료'
-    ui.followersOnly.disabled = users.length === 0;
+  function followClear() {
+    followUsers = []; followSeen = new Set();
+    const deltaEl = shadow.getElementById('f-delta');
+    const statusEl = shadow.getElementById('f-status');
+    if (deltaEl) deltaEl.textContent = '0';
+    if (statusEl) statusEl.textContent = 'idle';
+    followRenderList();
   }
 
-  function clearAll() {
-    users = []; seen = new Set();
-    extracted = false;
-    ui.delta.textContent = '0'; ui.status.textContent = 'idle';
-    ui.followersOnly.disabled = true;
-    renderList();
+  function followToCSV(rows) {
+    const header = ['username', 'displayName', 'profileUrl'];
+    const escCSV = (s = '') => `"${String(s).replace(/"/g, '""')}"`;
+    return [header.join(','), ...rows.map(r => [r.username, r.displayName, `https://x.com/${r.username}`].map(escCSV).join(','))].join('\n');
   }
 
-  function drawWinners() {
-    const n = Math.max(1, Math.min(parseInt(ui.winners.value||'1',10), users.length || 1));
-    const pool = [...users];
-    const picked = new Set();
-    while (picked.size < n && pool.length) picked.add(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
-    const res = Array.from(picked);
-    alert(`당첨자 (${n}명)\n` + res.map(u => `${u.nickname} (@${u.handle})`).join('\n'));
-  }
-
-  function toCSV(rows) {
-    const header = ['handle','nickname','description'];
-    const escCSV = (s='') => `"${String(s).replace(/"/g,'""')}"`;
-    return [header.join(','), ...rows.map(r => [r.handle, r.nickname, r.description].map(escCSV).join(','))].join('\n');
-  }
-  function copyText(txt) {
-    navigator.clipboard.writeText(txt).then(()=> {
-      ui.status.textContent = 'copied';
-      setTimeout(()=> ui.status.textContent = 'idle', 1200);
+  function followCopyText(txt) {
+    const statusEl = shadow.getElementById('f-status');
+    navigator.clipboard.writeText(txt).then(() => {
+      if (statusEl) { statusEl.textContent = 'copied'; setTimeout(() => statusEl.textContent = 'idle', 1200); }
     });
   }
 
-  // ========= Followers-only filter =========
-  function applyFollowersOnly() {
-    if (!extracted || users.length === 0) return; // RT 리스트가 없는 경우 방지
-    users = users.filter(u => u.followsMe === true);
-    renderList();
-    ui.followersOnly.disabled = true; // 1회성
-    ui.status.textContent = 'followers-only';
-    setTimeout(()=> ui.status.textContent = 'idle', 1200);
+  // ================================================================
+  //  MODE 3 — CLEANER (Placeholder)
+  // ================================================================
+  function renderCleanerMode() {
+    modeBody.innerHTML = `
+      <div class="placeholder">
+        Cleaner mode — Coming soon
+      </div>
+    `;
   }
 
-  // ========= Wire UI =========
-  ui.start.onclick = autoScrollCollect;
-  ui.stop.onclick  = stop;
-  ui.clear.onclick = clearAll;
-  ui.sort.onchange = renderList;
-  ui.filter.oninput = renderList;
-  ui.draw.onclick   = drawWinners;
-  ui.copy.onclick   = () => copyText(users.map(u=>`${u.nickname} (@${u.handle})`).join('\n'));
-  ui.csv.onclick    = () => copyText(toCSV(users));
-  ui.json.onclick   = () => copyText(JSON.stringify({count: users.length, users}, null, 2));
-  ui.followersOnly.onclick = applyFollowersOnly;
-  ui.close.onclick  = () => { host.remove(); window.__X_RAFFLE_PANEL__ = false; };
+  // ========= Initial Render =========
+  // Auto-detect best starting mode based on page
+  const detectedPage = getPageType();
+  if (detectedPage) {
+    currentMode = 'follow';
+    modeBtn.textContent = MODE_LABELS['follow'];
+  }
+  renderModeBody();
 
-  // 초기 1회 파싱
-  parseCells();
-  renderList();
+  // If on raffle page, do initial parse
+  if (currentMode === 'raffle') {
+    raffleParseRT();
+    raffleRenderList();
+  }
 })();
