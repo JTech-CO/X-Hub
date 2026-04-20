@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>X Hub | Privacy Policy</title>
+  <style>
+    /* External Fonts Import */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    :root {
+      --bg: #000000;
+      --text-primary: #e0e0e0;
+      --text: #cccccc;
+      --muted: #888888;
+      --panel: #0a0a0a;
+      --border: #333333;
+      --border-hover: #ffffff;
+      --link: #ffffff;
+      --link-visited: #cccccc;
+      --link-hover: #888888;
+      --accent: #ffffff;
+      --note-bg: #111111;
+
+      /* Typography */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Header Components */
+    header {
+      padding: 80px 24px 40px 24px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: var(--accent);
+      margin: 0 0 1rem 0;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    /* Section Header with Line */
+    h2 {
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+    }
+
+    h2::after {
+      content: '';
+      flex-grow: 1;
+      height: 1px;
+      background-color: var(--border);
+      margin-left: 20px;
+    }
+
+    p {
+      margin: 10px 0;
+      color: var(--text);
+      font-weight: 300;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s ease;
+    }
+
+    a:visited {
+      color: var(--link-visited);
+    }
+
+    a:hover {
+      border-bottom-color: var(--link);
+      color: var(--link);
+    }
+
+    /* Layout Utilities */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px 24px;
+    }
+
+    /* UI Elements */
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .note {
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      background: var(--note-bg);
+      border-left: 2px solid var(--accent);
+      padding: 16px;
+      border-radius: 0;
+      font-family: var(--font-mono);
+      margin: 16px 0;
+    }
+
+    .section {
+      margin: 0;
+    }
+
+    /* Grid & Card System */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: 24px;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    ul {
+      margin: 12px 0 12px 22px;
+      color: var(--text);
+      font-weight: 300;
+    }
+
+    li {
+      padding-left: 4px;
+      margin-bottom: 8px;
+    }
+
+    li strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .small {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 20px;
+    }
+
+    hr {
+      display: none;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 80px;
+      padding: 40px 20px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      header {
+        padding: 40px 20px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      main {
+        padding: 40px 20px;
+      }
+
+      h2 {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      h2::after {
+        width: 100%;
+        margin-top: 10px;
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="badge">X Hub</div>
+    <h1>Privacy Policy</h1>
+    <span class="small">Last updated: 2026-04-20 &nbsp;·&nbsp; Version 3.1.0</span>
+  </header>
+
+  <main>
+    <div class="content">
+
+      <div class="section card">
+        <h2>Overview</h2>
+        <p>This Privacy Policy explains how <strong>X Hub</strong> ("the Extension") handles user data.
+          The Extension is an all-in-one Chrome extension for X (Twitter) that provides three modes:
+          <strong>Raffle</strong> (collect reposters &amp; draw winners), <strong>Follow</strong> (mutual-follow
+          analysis),
+          and <strong>Filter</strong> (hide/show tweets by badge tier with a follow whitelist).
+          The panel automatically collapses to a minimal logo button on general pages and expands on
+          repost/likes/followers/following pages — no interaction required.
+        </p>
+        <p class="note">The Extension operates entirely within your browser. No user data is ever transmitted to any
+          external server, analytics service, or third party.</p>
+      </div>
+
+      <div class="section card">
+        <h2>1. Data We Process</h2>
+        <p>The Extension temporarily processes publicly visible information rendered on the active X page, including:
+        </p>
+        <ul>
+          <li><strong>Usernames / handles</strong> — to collect raffle participants or scan follow lists</li>
+          <li><strong>Display names &amp; bios</strong> — for search and display purposes in Raffle / Follow modes</li>
+          <li><strong>Follow status indicators</strong> — "Follows you" badges used in Raffle and Follow modes</li>
+          <li><strong>Verification badge data</strong> — read from the X API response (via a local fetch interceptor) to
+            support Filter mode's VERIFIED / NON-VER tiers</li>
+          <li><strong>Follow list (whitelist)</strong> — your followers/following handles, stored locally via
+            <code>chrome.storage.local</code> to exempt your network from filtering
+          </li>
+        </ul>
+        <p>Basic UI preferences (active mode, filter settings, language) are also persisted locally in
+          <code>chrome.storage.local</code> for your convenience.
+        </p>
+      </div>
+
+      <div class="section card">
+        <h2>2. Comprehensive Disclosure</h2>
+        <h3>2-a. How We Collect, Use, and Store</h3>
+        <ul>
+          <li><strong>Collect</strong>: When you open a supported X page and activate a feature, the Extension reads
+            the public DOM and (for Filter mode) intercepts X's own GraphQL API responses locally — no external
+            requests are made.</li>
+          <li><strong>Use</strong>: Data is used exclusively for de-duplication, filtering, random drawing,
+            mutual-follow
+            scanning, tweet visibility filtering, and exporting results to your clipboard.</li>
+          <li><strong>Store (session)</strong>: Raffle and Follow scan lists exist only in memory and disappear when
+            the tab is closed.</li>
+          <li><strong>Store (persistent)</strong>: Filter mode settings and your follow whitelist are saved in
+            <code>chrome.storage.local</code> so they persist across sessions. This data never leaves your device.
+          </li>
+          <li><strong>Share</strong>: Data is never shared automatically. When you click Copy (Text / CSV / JSON),
+            <em>you</em> decide who receives the exported data.
+          </li>
+        </ul>
+        <h3>2-b. Parties With Whom Data Is Shared</h3>
+        <p>We <strong>do not share</strong> any user data with third parties. The Extension contains no tracking
+          analytics, advertising SDKs, remote servers, or cloud-sync functionality. Data leaves your device only
+          if you voluntarily export and share it yourself.</p>
+      </div>
+
+      <div class="section card">
+        <h2>3. Permissions Used</h2>
+        <ul>
+          <li><strong>storage</strong> — Required by Filter mode to persist your follow whitelist and settings locally
+            via <code>chrome.storage.local</code>.</li>
+          <li><strong>host_permissions: https://x.com/*, https://api.x.com/*</strong> — Required to read the page DOM
+            and to allow the local fetch interceptor to capture X's API badge responses without sending data
+            anywhere.</li>
+          <li><strong>tabs</strong> (background.js) — Used solely to open and close background tabs for
+            auto-collecting your followers/following list as part of the Filter mode whitelist sync.</li>
+        </ul>
+      </div>
+
+      <div class="section card">
+        <h2>Additional Information</h2>
+        <ul>
+          <li><strong>Security</strong>: All data processing is strictly confined to your local browser
+            environment.</li>
+          <li><strong>Children</strong>: This is a general utility tool not directed at children.</li>
+          <li><strong>Changes</strong>: If future feature updates require changes to this policy, the updated
+            date will be reflected at the top of this page.</li>
+          <li><strong>Contact</strong>: Questions? Reach us at
+            <a href="mailto:jtech-bryan@proton.me">jtech-bryan@proton.me</a>.
+          </li>
+        </ul>
+      </div>
+
+    </div>
+    <hr>
+  </main>
+
+  <footer>
+    <span>© 2026 X Hub</span>
+    &nbsp;·&nbsp;
+    <a href="xh-patch-notes.html">Patch Notes</a>
+  </footer>
+</body>
+
+</html>

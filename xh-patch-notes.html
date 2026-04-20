@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>X Hub | Patch Notes</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    :root {
+      --bg: #000000;
+      --text-primary: #e0e0e0;
+      --text: #cccccc;
+      --muted: #888888;
+      --panel: #0a0a0a;
+      --border: #333333;
+      --border-hover: #ffffff;
+      --accent: #ffffff;
+      --note-bg: #111111;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 80px 24px 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: var(--accent);
+      font-size: 2.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      margin: 0 0 10px;
+    }
+
+    .subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    /* ── Major Version Group ── */
+    .version-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .version-group-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .version-group-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+    }
+
+    .version-group-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Patch Entry Card ── */
+    .entry {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 0 24px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .entry:last-child {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .entry:hover {
+      border-color: var(--border-hover);
+      background: #111111;
+      z-index: 1;
+      position: relative;
+    }
+
+    /* LATEST entry special treatment */
+    .entry.latest {
+      border-color: var(--accent);
+      border-bottom: 1px solid var(--accent);
+      background: #0d0d0d;
+    }
+
+    .entry.latest+.entry {
+      border-top: none;
+    }
+
+    .entry.latest:hover {
+      background: #161616;
+    }
+
+    /* Version number column */
+    .entry-ver {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 2px;
+      gap: 6px;
+    }
+
+    .ver-num {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+
+    .ver-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #000000;
+      background: var(--accent);
+      padding: 2px 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* Description column */
+    .entry-desc {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .desc-en {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: #f0f0f0;
+      line-height: 1.6;
+    }
+
+    .desc-ko {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Multi-line description list */
+    .desc-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .desc-list li {
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .desc-list li::before {
+      content: '·';
+      position: absolute;
+      left: 0;
+      color: var(--muted);
+    }
+
+    .desc-divider {
+      width: 24px;
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 80px;
+      padding: 40px 20px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    footer a:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      header {
+        padding: 40px 20px 30px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      main {
+        padding: 32px 16px 60px;
+      }
+
+      .entry {
+        grid-template-columns: 1fr;
+        gap: 12px 0;
+      }
+
+      .entry-ver {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="badge">X Hub</div>
+    <h1>Patch Notes</h1>
+    <p class="subtitle">패치 노트 · Version History</p>
+  </header>
+
+  <main>
+
+    <!-- ── v3.x ── -->
+    <div class="version-group">
+      <div class="version-group-header">
+        <span class="version-group-label">v3.x</span>
+        <div class="version-group-line"></div>
+      </div>
+
+      <div class="entry latest">
+        <div class="entry-ver">
+          <span class="ver-num">3.1.0</span>
+          <span class="ver-tag">Latest</span>
+        </div>
+        <div class="entry-desc">
+          <div class="desc-en">
+            <ul class="desc-list">
+              <li>Panel auto-collapse: minimizes to a small X HUB button on non-special pages; auto-expands on repost /
+                likes / followers / following pages</li>
+              <li>Mode switch button border &amp; text color changed to <code>#C73DD9</code></li>
+            </ul>
+          </div>
+          <div class="desc-divider"></div>
+          <div class="desc-ko">
+            <ul class="desc-list">
+              <li>패널 자동 최소화: 재게시·좋아요·팔로워·팔로잉 외 화면에서 X HUB 버튼으로 자동 최소화, 해당 페이지 진입 시 자동 펼침</li>
+              <li>모드 전환 버튼 테두리 및 글자 색상 <code>#C73DD9</code>으로 변경</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver">
+          <span class="ver-num">3.0.0</span>
+        </div>
+        <div class="entry-desc">
+          <div class="desc-en">
+            <ul class="desc-list">
+              <li>Rebranded to "X Hub"</li>
+              <li>Added MODE 3 (Filter) and improved logic</li>
+              <li>Tweet filtering by badge tier: ALL / VERIFIED / NON-VER</li>
+              <li>Scope selection: Timeline, Detail / Replies, Search</li>
+              <li>Repost filter, Quote filter</li>
+              <li>Follow whitelist sync with auto-collect (EN/KO/JA)</li>
+              <li>Added <code>background.js</code> service worker &amp; <code>fetch-interceptor.js</code> for API badge
+                capture</li>
+              <li>Added <code>storage</code> permission; broadened <code>content_script</code> matches to
+                <code>https://x.com/*</code>
+              </li>
+              <li>Increased overall font sizes and brightened text colors</li>
+            </ul>
+          </div>
+          <div class="desc-divider"></div>
+          <div class="desc-ko">
+            <ul class="desc-list">
+              <li>"X Hub"으로 리브랜딩</li>
+              <li>MODE 3 (Filter) 추가 및 로직 개선</li>
+              <li>뱃지 등급별 트윗 필터링: ALL / VERIFIED / NON-VER</li>
+              <li>범위 선택: 타임라인, 상세/답글, 검색</li>
+              <li>재게시 필터, 인용 필터</li>
+              <li>팔로우 화이트리스트 자동 수집 동기화 (EN/KO/JA)</li>
+              <li><code>background.js</code> 서비스 워커 및 <code>fetch-interceptor.js</code> 추가 (API 뱃지 캡처)</li>
+              <li><code>storage</code> 권한 추가; <code>content_script</code> 매치 범위 <code>https://x.com/*</code> 으로 확장</li>
+              <li>전반적인 폰트 크기 확대 및 텍스트 색상 밝기 개선</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v2.x ── -->
+    <div class="version-group">
+      <div class="version-group-header">
+        <span class="version-group-label">v2.x</span>
+        <div class="version-group-line"></div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">2.0.3</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">MODE 1 scroll / crawl performance improvements</div>
+          <div class="desc-ko">MODE 1 스크롤 / 크롤링 성능 개선</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">2.0.2</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">MODE 2 — keep scrolling to end of page when Found = 0</div>
+          <div class="desc-ko">MODE 2 Found 0일 때 페이지 끝까지 스크롤 유지하도록 수정</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">2.0.1</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">MODE 2 scroll / crawl performance improvements</div>
+          <div class="desc-ko">MODE 2 스크롤 / 크롤링 성능 개선</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">2.0.0</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Redesign, full English UI, 3-mode toggle system, bug fixes for device-specific
+            recognition issues</div>
+          <div class="desc-ko">디자인 변경, 영문화, 3가지 MODE 선택 방식으로 변경, 디바이스에 따른 인식 문제 등 버그 수정</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── v1.x ── -->
+    <div class="version-group">
+      <div class="version-group-header">
+        <span class="version-group-label">v1.x</span>
+        <div class="version-group-line"></div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.3.1</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Removed unused permissions from manifest</div>
+          <div class="desc-ko">매니페스트에서 사용하지 않는 권한 삭제</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.3.0</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Added "Follows you / 나를 팔로우합니다" filtering</div>
+          <div class="desc-ko">"Follows you / 나를 팔로우합니다" 필터링 추가</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.2.1</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Follower Only button is enabled only after RT collection</div>
+          <div class="desc-ko">Follower Only는 RT 수집 후에만 활성화</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.2.0</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Removed Points; added Follower Only button</div>
+          <div class="desc-ko">Point 제거, Follower Only 버튼 추가</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.1.3</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Minor bug fixes</div>
+          <div class="desc-ko">사소한 버그 수정</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.1.2</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Point system bug fix</div>
+          <div class="desc-ko">Point 기능 오류 수정</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.1.1</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Point system added</div>
+          <div class="desc-ko">Point 기능 추가</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.1.0</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Collect only from the central repost column</div>
+          <div class="desc-ko">중앙 재게시 컬럼에서만 인식하도록 수정</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.0.2</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Minor bug fixes</div>
+          <div class="desc-ko">사소한 버그 수정</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.0.1</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Minor UI fixes</div>
+          <div class="desc-ko">사소한 UI 수정</div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="entry-ver"><span class="ver-num">1.0.0</span></div>
+        <div class="entry-desc">
+          <div class="desc-en">Initial release (Raffle mode)</div>
+          <div class="desc-ko">초기 출시 (Raffle 모드)</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <span>© 2026 X Hub</span>
+    &nbsp;·&nbsp;
+    <a href="xh-privacy-policy.html">Privacy Policy</a>
+  </footer>
+</body>
+
+</html>
