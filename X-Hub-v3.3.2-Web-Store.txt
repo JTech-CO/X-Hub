@@ -1,0 +1,76 @@
+Chrome Web Store Listing — X HUB 3.3.2
+
+---
+
+<Short Description>
+Raffles, follow-list checks, post filters, and side-by-side X timelines in one compact browser panel.
+
+<Description>
+X HUB — Raffles, Follow Management, Filters & Vertical Timelines
+
+Bring four tools together while browsing X (Twitter): collect raffle participants, check follow relationships, filter posts, and view several timelines side by side. X HUB adds a compact panel to X and uses your existing X session. No separate X HUB account or API key is required.
+
+RAFFLE
+Collect participants from the repost list displayed by X, search the collected list, and draw random winners. Use the Follower Only option to include accounts identified as following you. Copy collected results as text, CSV, or JSON for your own records.
+
+FOLLOW
+Scan follower and following pages to review follow relationships and identify one-way connections using the information displayed by X. Search the collected accounts and copy results for further review. X HUB does not automatically follow or unfollow accounts.
+
+FILTER
+Choose which posts to display using verification-badge filters. Apply filters to timelines, post detail/reply pages, and search results, with options for reposts and quoted posts. Keep your follow network exempt through a locally stored whitelist. Whitelist synchronization can open background follower/following tabs, collect the loaded handles, and close the tabs created for that job.
+
+VERTICAL
+View home, notifications, bookmarks, explore, searches, profiles, and lists in separate columns. Save up to eight columns, with up to five visible together when the screen is wide enough. Each column scrolls independently and keeps X's native post controls, including replies, likes, reposts, and bookmarks.
+
+Column headers provide compact, labeled Refresh, Expand, and Settings controls. Move columns left or right, open their timeline in a new tab, or remove them through Settings. Scrollbars inside columns are hidden while scrolling remains available. Column widths adapt to the screen automatically; narrower screens can scroll horizontally. The interface uses X HUB's monochrome palette, purple highlight, and square corners.
+
+LOCAL PROCESSING
+Raffle and Follow scan results are held in tab memory. Filter settings, follow-network data, account-related sync information, and Vertical column layouts are stored in the browser. Copy actions write the results you select to your clipboard. X HUB has no publisher-operated data server, analytics service, advertising SDK, or cloud synchronization.
+
+X pages, media, searches, and any actions you take through X's controls still communicate with X using your existing session. X HUB does not collect your password or require you to provide an access token.
+
+Collection depends on the lists X actually loads. Access restrictions, loading delays, interrupted scans, and changes to X can affect results; a scan is not guaranteed to contain every account. Vertical is X HUB's own multi-column view and remains subject to X's login, content-access, and service restrictions.
+
+X HUB is an independent browser extension and is not affiliated with or endorsed by X Corp.
+
+---
+
+<Single Purpose>
+X HUB's single purpose is to help users organize and manage their browsing experience on X. Its in-page tools use X's displayed account, relationship, and post information to collect raffle participants, review follow relationships, filter visible posts, and arrange timelines into a multi-column view. Processing and extension settings stay in the browser; ordinary X page requests and user-initiated X interactions continue to use the existing X session. The extension does not operate a separate social network or publisher data service.
+
+---
+
+<storage>
+Used to persist Filter settings, follow-network whitelists and per-account handle caches, current-account and synchronization metadata, and Vertical column names, paths, search queries, and order in chrome.storage.local. chrome.storage.session tracks the IDs and ownership of background tabs created for whitelist collection, so the service worker can resume safely and close only its own collection tabs. Raffle and Follow scan results are kept in tab memory rather than uploaded to a publisher service. There is no chrome.storage.sync use or publisher-operated cloud storage.
+
+---
+
+<declarativeNetRequestWithHostAccess>
+Used only to load the same-origin X documents that form Vertical columns. While Vertical is open, the service worker installs a temporary session rule scoped to the current tab, the X initiator host, sub_frame requests, and an X URL containing a generated per-session token. The rule changes the X-Frame-Options response header to SAMEORIGIN for those matching requests. It does not remove or change Content-Security-Policy and does not permit embedding by unrelated sites. The rule is removed when Vertical closes, the tab closes, or the top-level URL changes. Rules are not used for advertising, tracking, or redirecting browsing traffic.
+
+---
+
+<Host access: https://x.com/* and https://twitter.com/*>
+Used to insert the X HUB panel, read displayed account and post information for the selected tools, scroll collection lists, apply local visibility filters, and show native X timelines inside Vertical columns. The bundled MAIN-world script observes selected X API responses already requested by the page to obtain account verification-badge data for Filter. Whitelist synchronization opens X follower/following pages in background tabs. Vertical loads ordinary X pages with the existing X session and retains X's native controls. X HUB does not request the cookies or history permissions and does not send these results to a publisher server.
+
+<Host permission: https://api.x.com/*>
+This X API origin is included in the declared host scope and in the local response observer's accepted host list. The observer examines cloned JSON responses for matching /i/api/graphql/ or /i/api/2/ requests already made by X, extracts account handles and verification-badge fields, and passes those fields to the in-page Filter logic. It returns the original response to X without waiting for parsing. This build does not initiate separate cross-origin API requests to api.x.com or request an API key or user-provided token. The observed data is not uploaded to a publisher server.
+
+---
+
+<Remote Code>
+No remotely hosted extension code. X HUB's extension scripts and UI are included in the package. The extension does not download scripts to execute as extension logic. Vertical displays ordinary X web pages, which load X's own website resources within their page context.
+
+---
+
+<Privacy Policy URL>
+https://jtech-co.github.io/X-Hub/xh-privacy-policy.html
+
+---
+
+<Publisher Notes — Not Part of the Store Description>
+Version: 3.3.2
+Upload package: releases/x-hub-v3.3.2.zip
+Use screenshots of the current X HUB interface, including the labeled column controls and automatic column widths.
+Confirm that the published privacy-policy URL is accessible and matches the package before submitting.
+The current implementation does not make separate requests that depend on the api.x.com host permission. Review whether that declared host permission should be removed before submission; do not describe it as required for a direct API feature that this build does not implement.
