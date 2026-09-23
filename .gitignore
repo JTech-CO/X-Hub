@@ -1,0 +1,9 @@
+node_modules/
+test-results/
+coverage/
+.dist-build-*/
+.dist-backup-*/
+releases/.package-*.zip
+*.log
+.DS_Store
+Thumbs.db

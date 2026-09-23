@@ -1,0 +1,15 @@
+{
+  "name": "x-hub",
+  "version": "3.3.1",
+  "private": true,
+  "description": "X HUB extension source, validation and release tools",
+  "engines": { "node": "22.x || 24.x" },
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "pretest": "npm run build",
+    "test": "node --test tests/regression.test.cjs tests/build.test.cjs",
+    "prepreview": "npm run build",
+    "preview": "node scripts/manual/fixture-server.cjs",
+    "package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1"
+  }
+}
